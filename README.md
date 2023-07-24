@@ -1,8 +1,9 @@
-# github-setup-minus1chan-group
-github-setup-minus1chan-group created by GitHub Classroom
+# -1Chan Message Board
+
+
 
 ----------------------------------
-1.     Problem Description
+## 1. Problem Description
 ----------------------------------
 We will be designing a message board. The message board will organize community Threads under Topics. Users will be able to register using a unique user_name and password. Users can create threads under existing topics, add posts to existing threads, and add comments to existing posts. 
 
@@ -10,7 +11,7 @@ The front end will display pages to help users navigate through the topics, thre
 
 
 ----------------------------------
-2.     Proposed system
+## 2. Proposed system
 ----------------------------------
 Here are the necessary Entities within this system:
 •       Topic – (topic_id (PK), topic_title, topic_image)
@@ -25,7 +26,7 @@ Here are the necessary Entities within this system:
 
  
 ----------------------------------
-3. System Specification (proposed)
+## 3. System Specification (proposed)
 ----------------------------------
 Hardware Requirements:
 Computer - to be able to run and access the site
