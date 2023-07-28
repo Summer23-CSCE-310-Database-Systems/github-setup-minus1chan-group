@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "301-project"
+version = "0.1.0"
+description = ""
+authors = ["Brandon Stokes <111932001+Brandonstokes@users.noreply.github.com>"]
+readme = "README.md"
+packages = [{include = "301_project"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+jupyter = "^1.0.0"
+sqlalchemy = "^2.0.19"
+pyscopg2 = "^66.0.2"
+flask = "^2.3.2"
+pandas = "^2.0.3"
+flask-login = "^0.6.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
