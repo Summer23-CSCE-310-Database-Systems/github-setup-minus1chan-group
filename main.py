@@ -58,13 +58,25 @@ def topics():
 #         results = connection.execute(select(Thread).where(Thread.c.topic_id == topic_id).order_by(desc(Thread.c.vote_ratio))).fetchall()
 #     return render_template('threads.html', threads=results)
 
-# @app.route('/posts/<int:post_id>')
-# def posts(post_id):
-#     with engine.connect() as connection:
-#         post = connection.execute(select(Post).where(Post.c.post_id == post_id)).fetchone()
-#         comments = connection.execute(select(Comment).where(Comment.c.post_id == post_id)).fetchall()
-#     return render_template('post.html', post=post, comments=comments)
+@app.route('/posts/<int:post_id>', methods=['GET', 'POST'])
+def posts(post_id):
+    if request.method == 'POST':
+        # Process the submitted comment here
+        # You can access the comment data from the form using request.form
+        comment_text = request.form['comment_text']
+        # You should also store the user information (if logged in) to associate the comment with the user
+        user_name = session.get('user_name', None)  # Get the username from the session, if available
+        with engine.connect() as connection:
+            # Insert the comment into the database
+            connection.execute(Comment.insert().values(post_id=post_id, user_name=user_name, comment_text=comment_text))
+        flash('Comment added successfully!', 'success')
+        return redirect(url_for('posts', post_id=post_id))  # Redirect back to the same post page
 
+    else:  # When the request method is 'GET'
+        with engine.connect() as connection:
+            post = connection.execute(select(Post).where(Post.c.post_id == post_id)).fetchone()
+            comments = connection.execute(select(Comment).where(Comment.c.post_id == post_id)).fetchall()
+        return render_template('post.html', post=post, comments=comments)
 
 if __name__ == '__main__':
     app.run(debug=True,port=8000)
