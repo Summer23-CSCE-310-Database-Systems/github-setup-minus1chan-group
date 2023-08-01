@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1 class='displayname'>
+      {{ user.user_name }}
+    </h1>
+
+    <div>
+      <img class='photo' src="{{ user.user_image }}"/>
+      <p class='bio'>{{ user.profile_text }}</p>
+    </div>
+
+    <div>
+      <h3 class='linkstab'>
+        This user's threads
+      </h3>
+      <ul class='links'>
+        {% for thread in user_threads %}
+            <li><a href="{{ url_for('thread_posts', thread_id=thread.thread_id) }}">{{ thread.thread_title }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div>
+      <h3 class='linkstab'>
+        This user's posts
+      </h3>
+      <ul class='links'>
+        {% for post in user_posts %}
+            <li><a href="{{ url_for('thread_posts', thread_id=post.thread_id) }}">{{ post.post_title }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div>
+      <h3 class='linkstab'>
+        This user's comments
+      </h3>
+      <ul class='links'>
+        {% for comment in user_comments %}
+            <li>{{ comment.comment_text }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+{% endblock %}
+

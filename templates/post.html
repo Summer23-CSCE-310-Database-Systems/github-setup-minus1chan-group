@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{{ thread_title }}</h2>
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#postModal">
+        Add Post
+    </button>
+    
+    <!-- Modal -->
+    <div class="modal fade" id="postModal" tabindex="-1" role="dialog" aria-labelledby="postModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h5 class="modal-title" id="postModalLabel">New Post</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            </div>
+            <div class="modal-body">
+            <form id="postForm" method="post" action="{{ url_for('add_post') }}">
+                <div class="form-group">
+                    <label for="thread-title" class="col-form-label">Post title:</label>
+                    <input type="text" class="form-control" id="post-title" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="thread-text" class="col-form-label">Post text:</label>
+                    <textarea class="form-control" id="post-text" name="text" required></textarea>
+                </div>
+                <input type="hidden" name="thread_id" value="{{ thread_id }}">
+            </form>
+            </div>
+            <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" onclick="document.getElementById('postForm').submit()">Add Post</button>
+            </div>
+        </div>
+        </div>
+    </div>
+    {% for post in posts %}
+        <a data-toggle="modal" data-target="#myModal-{{ post.post_id }}" style="color: inherit; text-decoration: none;">
+            <div style="border:1px solid black; margin: 20px auto; padding: 20px; width: 50%; position: relative; display: flex; flex-direction: column;">
+                <h2 style="font-weight: bold; margin-bottom: 20px;">{{ post.post_title }}</h2>
+                <p>{{ post.post_text }}</p>
+                <div style="position: absolute; bottom: -10px; right: 10px;">
+                    <p>Likes: {{ post.posts_likes }} Dislikes: {{ post.posts_dislikes }}</p>
+                </div>
+                <div style="position: absolute; bottom: -10px; left: 10px;">
+                    <p>Posted on: {{ post.post_creation_time.strftime('%Y-%m-%d %H:%M:%S') }} by <a href="{{ url_for('user_page', user_name=post.user_name) }}">{{post.user_name}}</a></p>
+                </div>
+            </div>
+        </a>
+
+        <!-- The Modal -->
+        <div class="modal fade" id="myModal-{{ post.post_id }}">
+            <div class="modal-dialog modal-dialog-scrollable modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="modal-title">{{ post.post_title }}</h2>
+                        <button type="button" class="close" data-dismiss="modal">x</button>
+                    </div>
+                    <div class="modal-body">
+                        <p>{{ post.post_text }}</p>
+                        <h4>Add Comment</h4>
+                        <form id="commentForm-{{ post.post_id }}" method="post" action="{{ url_for('add_comment') }}">
+                            <div class="form-group">
+                                <label for="comment-text" class="col-form-label">Comment:</label>
+                                <textarea class="form-control" id="comment-text" name="text" required></textarea>
+                            </div>
+                            <input type="hidden" name="post_id" value="{{ post.post_id }}">
+                            <input type="hidden" name="thread_id" value="{{ thread_id }}">
+                            <button type="button" class="btn btn-primary" onclick="document.getElementById('commentForm-{{ post.post_id }}').submit()">Add Comment</button>
+                        </form>
+                        <h4>Comments</h4>
+                        {% for comment in post.comments %}
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid gray; padding-bottom: 10px;">
+                                <div>
+                                    <a href="{{ url_for('user_page', user_name=comment.user_name) }}"><p><strong>{{ comment.user_name }}</strong></p></a>
+                                    <p>{{ comment.comment_text }}</p>
+                                </div>
+                                <div>
+                                    <p>Likes: {{ comment.comment_likes }} Dislikes: {{ comment.comment_dislikes }}</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+    
+{% endblock %}
+
