@@ -41,14 +41,14 @@ SQLAlchemy and Psycopg2 library because we are using Python to code and interact
 ----------------------------------
 ## 4. Requirements
 ----------------------------------
-python = "^3.10"
-jupyter = "^1.0.0"
-sqlalchemy = "^2.0.19"
-pyscopg2 = "^66.0.2"
-flask = "^2.3.2"
-pandas = "^2.0.3"
-flask-login = "^0.6.2"
-flask-sqlalchemy = "^3.0.5"
+•       python = "^3.10"
+•       jupyter = "^1.0.0"
+•       sqlalchemy = "^2.0.19"
+•       pyscopg2 = "^66.0.2"
+•       flask = "^2.3.2"
+•       pandas = "^2.0.3"
+•       flask-login = "^0.6.2"
+•       flask-sqlalchemy = "^3.0.5"
 
 ----------------------------------
 ## 5. External Deps
