@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Post</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <h2>Create post</h2>
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                <form action="" method="post">
+                    <div class="form-group">
+                        <label for="post_id">Post ID</label>
+                        <input type="text" class="form-control" id="post_id" name="post_id" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="user_name">User name</label>
+                        <input type="text" class="form-control" id="user_name" name="user_name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="post_title">Post Title</label>
+                        <input type="text" class="form-control" id="post_title" name="post_title" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="post_text">Post Text</label>
+                        <input type="text" class="form-control" id="post_text" name="post_text" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Post</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

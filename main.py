@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
-from sqlalchemy import create_engine, Table, MetaData, select, desc
+from sqlalchemy import create_engine, Table, MetaData, select, desc, text
 
 from flask import session
 
@@ -58,13 +58,36 @@ def topics():
 #         results = connection.execute(select(Thread).where(Thread.c.topic_id == topic_id).order_by(desc(Thread.c.vote_ratio))).fetchall()
 #     return render_template('threads.html', threads=results)
 
-# @app.route('/posts/<int:post_id>')
-# def posts(post_id):
-#     with engine.connect() as connection:
-#         post = connection.execute(select(Post).where(Post.c.post_id == post_id)).fetchone()
-#         comments = connection.execute(select(Comment).where(Comment.c.post_id == post_id)).fetchall()
-#     return render_template('post.html', post=post, comments=comments)
+@app.route('/posts/<int:post_id>')
+def posts(post_id):
+    with engine.connect() as connection:
+        post = connection.execute(select(Post).where(Post.c.post_id == post_id)).fetchone()
+        comments = connection.execute(select(Comment).where(Comment.c.post_id == post_id)).fetchall()
+    return render_template('read_post.html', post=post, comments=comments, )
 
+@app.route('/create-post', methods=['GET', 'POST'])
+def create_post():
+    if request.method == 'POST':
+        post_id = request.form['post_id']
+        user_name = request.form['user_name']
+        post_title = request.form['post_title']
+        post_text = request.form['post_text']
+        
+        
+    #new_post = Post(post_id=post_id, user_name=user_name, post_title=post_title,post_text=post_text )
+
+
+        with engine.connect() as connection:
+            #### TODO VALIDATE DATA ###
+            connection.execute(text("insert into Post(post_id, user_name, post_title, post_text) values (" + post_id + ",'" + user_name + "','" + post_title + "','" + post_text + "')"))
+            connection.commit()
+            # if result and result[1] == password:
+            #     session['user_name'] = result[0]
+            #     return redirect(url_for('topics'))
+            # else:
+            flash('post created', 'info')
+            
+    return render_template('create_post.html')
 
 if __name__ == '__main__':
     app.run(debug=True,port=8000)

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Post</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+</head>
+<body>
+    <h2> {{post.post_title}}  </h2>
+    <h4> {{post.post_text}}</h4>
+    <h6> {{post.user_name}}  </h6>
+    <br>
+    <h3> Comments </h3>
+    <ul>
+        {% for comment in comments %}
+        <h5> {{comment.comment_text}}</h5>
+        <h6>{{comment.user_name}}  </h6>
+        {% endfor %}
+    </ul>
+    
+</body>
+</html>
