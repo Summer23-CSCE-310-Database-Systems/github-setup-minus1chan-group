@@ -3,9 +3,6 @@ from sqlalchemy import create_engine, Table, MetaData, select, desc, insert
 from flask_sqlalchemy import SQLAlchemy
 import datetime
 
-
-
-
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://postgres:minus1chan@project301.c3lu1ffcsmca.us-east-2.rds.amazonaws.com'
@@ -18,6 +15,26 @@ Topic = Table('topic', metadata, autoload_with=engine)
 Thread = Table('thread', metadata, autoload_with=engine)
 Post = Table('post', metadata, autoload_with=engine)
 Comment = Table('comment', metadata, autoload_with=engine)
+
+@app.route('/register', methods=['POST'])
+def register():
+    user_name = request.form['user_name']
+    password = request.form['password']
+    profile_text = request.form['profile_text']
+
+    with engine.connect() as connection:
+        existing_user = connection.execute(select(User).where(User.c.user_name == user_name)).fetchone()
+        
+        if existing_user:
+            flash('User already exists, please choose another username.', 'warning')
+            return redirect(url_for('login'))
+        
+        new_user = User.insert().values(user_name=user_name, password=password, profile_text=profile_text)
+        connection.execute(new_user)
+        connection.commit()
+
+        flash('Registration successful. Please log in.', 'success')
+        return redirect(url_for('login'))
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -71,12 +88,13 @@ def thread_posts(thread_id):
     with engine.connect() as connection:
         thread = connection.execute(select(Thread).where(Thread.c.thread_id == thread_id)).fetchone()
         thread_title = thread.thread_title if thread else ""
-        result = connection.execute(select(Post).where(Post.c.thread_id == thread_id)).fetchall()
+        result = connection.execute(select(Post).where(Post.c.thread_id == thread_id).order_by(desc(Post.c.posts_likes))).fetchall() # Order by likes
         posts = [row._asdict() for row in result]
         for post in posts:
             comments_result = connection.execute(select(Comment).where(Comment.c.post_id == post['post_id'])).fetchall()
             post['comments'] = [row._asdict() for row in comments_result]
-    return render_template('post.html', posts=posts, thread_id=thread_id,username=username,thread_title=thread_title)
+    return render_template('post.html', posts=posts, thread_id=thread_id, username=username, thread_title=thread_title)
+
 
 
 @app.route('/users/<string:user_name>', methods=['GET'])
@@ -134,6 +152,43 @@ def add_comment():
 
 
     return redirect(url_for('thread_posts', thread_id=thread_id))
+
+@app.route('/like_post/<int:post_id>', methods=['POST'])
+def like_post(post_id):
+    username = session.get('user_name', 'Guest')
+    liked_posts = session.get(f'liked_posts_{username}', [])
+
+    if post_id not in liked_posts:
+        with engine.connect() as connection:
+            post = connection.execute(select(Post).where(Post.c.post_id == post_id)).fetchone()
+            if post:
+                likes = post[5] + 1
+                stmt = Post.update().where(Post.c.post_id == post_id).values(posts_likes=likes)
+                db.session.execute(stmt)
+                db.session.commit()
+        liked_posts.append(post_id)
+        session[f'liked_posts_{username}'] = liked_posts
+    return redirect(request.referrer)
+
+
+
+@app.route('/dislike_post/<int:post_id>', methods=['POST'])
+def dislike_post(post_id):
+    username = session.get('user_name', 'Guest')
+    disliked_posts = session.get(f'disliked_posts_{username}', [])
+
+    if post_id not in disliked_posts:
+        with engine.connect() as connection:
+            post = connection.execute(select(Post).where(Post.c.post_id == post_id)).fetchone()
+            if post:
+                dislikes = post.posts_dislikes + 1
+                stmt = Post.update().where(Post.c.post_id == post_id).values(posts_dislikes=dislikes)
+                connection.execute(stmt)
+                connection.commit()
+        disliked_posts.append(post_id)
+        session[f'disliked_posts_{username}'] = disliked_posts
+    return redirect(request.referrer)
+
 
 
 if __name__ == '__main__':

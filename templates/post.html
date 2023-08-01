@@ -4,8 +4,7 @@
     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#postModal">
         Add Post
     </button>
-    
-    <!-- Modal -->
+
     <div class="modal fade" id="postModal" tabindex="-1" role="dialog" aria-labelledby="postModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -36,20 +35,26 @@
         </div>
     </div>
     {% for post in posts %}
+    <div style="border:1px solid black; margin: 20px auto; padding: 20px; width: 50%; position: relative; display: flex; flex-direction: column;">
         <a data-toggle="modal" data-target="#myModal-{{ post.post_id }}" style="color: inherit; text-decoration: none;">
-            <div style="border:1px solid black; margin: 20px auto; padding: 20px; width: 50%; position: relative; display: flex; flex-direction: column;">
-                <h2 style="font-weight: bold; margin-bottom: 20px;">{{ post.post_title }}</h2>
-                <p>{{ post.post_text }}</p>
-                <div style="position: absolute; bottom: -10px; right: 10px;">
-                    <p>Likes: {{ post.posts_likes }} Dislikes: {{ post.posts_dislikes }}</p>
-                </div>
-                <div style="position: absolute; bottom: -10px; left: 10px;">
-                    <p>Posted on: {{ post.post_creation_time.strftime('%Y-%m-%d %H:%M:%S') }} by <a href="{{ url_for('user_page', user_name=post.user_name) }}">{{post.user_name}}</a></p>
-                </div>
-            </div>
+            <h2 style="font-weight: bold; margin-bottom: 20px;">{{ post.post_title }}</h2>
+            <p>{{ post.post_text }}</p>
         </a>
+        <div style="position: absolute; bottom: 10px; right: 10px;">
+            <form action="{{ url_for('like_post', post_id=post.post_id) }}" method="post">
+                <button type="submit">👍</button>
+            </form>
+            Likes: {{ post.posts_likes }}
+            <form action="{{ url_for('dislike_post', post_id=post.post_id) }}" method="post">
+                <button type="submit">👎</button>
+            </form>
+            Dislikes: {{ post.posts_dislikes }}
+        </div>
+        <div style="position: absolute; bottom: -10px; left: 10px;">
+            <p>Posted on: {{ post.post_creation_time.strftime('%Y-%m-%d %H:%M:%S') }} by <a href="{{ url_for('user_page', user_name=post.user_name) }}">{{post.user_name}}</a></p>
+        </div>
+    </div>
 
-        <!-- The Modal -->
         <div class="modal fade" id="myModal-{{ post.post_id }}">
             <div class="modal-dialog modal-dialog-scrollable modal-lg">
                 <div class="modal-content">
