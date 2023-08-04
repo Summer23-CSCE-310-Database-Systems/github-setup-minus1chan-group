@@ -53,7 +53,7 @@ def login():
                 flash('Login Unsuccessful. Please check username and password', 'danger')
     return render_template('login.html')
 
-
+@app.route('/', methods=['GET'])
 @app.route('/topics', methods=['GET'])
 def topics():
     username = session.get('user_name', 'Guest')
@@ -104,11 +104,18 @@ def user_page(user_name):
         user_threads = connection.execute(select(Thread).where(Thread.c.user_name == user_name)).fetchall()
         user_threads = [row._asdict() for row in user_threads]
         user_posts = connection.execute(select(Post).where(Post.c.user_name == user_name)).fetchall()
+
+        user_likes = 0
+        user_dislikes = 0
+        for post in user_posts:
+            user_likes += post[5]
+            user_dislikes += post[6]
+
         user_posts = [row._asdict() for row in user_posts]
         user_comments = connection.execute(select(Comment).where(Comment.c.user_name == user_name)).fetchall()
         user_comments = [row._asdict() for row in user_comments]
-
-    return render_template('user.html', user=user, user_threads=user_threads, user_posts=user_posts, user_comments=user_comments)
+        
+    return render_template('user.html', user=user, user_threads=user_threads, user_posts=user_posts, user_comments=user_comments, user_likes=user_likes, user_dislikes=user_dislikes)
 
 @app.route('/add_thread', methods=['POST'])
 def add_thread():
