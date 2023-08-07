@@ -35,26 +35,65 @@
         </div>
     </div>
     {% for post in posts %}
-    <div style="border:1px solid black; margin: 20px auto; padding: 20px; width: 50%; position: relative; display: flex; flex-direction: column;">
-        <a data-toggle="modal" data-target="#myModal-{{ post.post_id }}" style="color: inherit; text-decoration: none;">
-            <h2 style="font-weight: bold; margin-bottom: 20px;">{{ post.post_title }}</h2>
-            <p>{{ post.post_text }}</p>
-        </a>
-        <div style="position: absolute; bottom: 10px; right: 10px;">
-            <form action="{{ url_for('like_post', post_id=post.post_id) }}" method="post">
-                <button type="submit">👍</button>
-            </form>
-            Likes: {{ post.posts_likes }}
-            <form action="{{ url_for('dislike_post', post_id=post.post_id) }}" method="post">
-                <button type="submit">👎</button>
-            </form>
-            Dislikes: {{ post.posts_dislikes }}
+    <div style="display: flex; flex-direction: row; justify-content: center;"> <!-- The post and edit button are inside of this div-->
+        <div style="border:1px solid black; margin: 20px auto; padding: 20px; width: 50%; position: relative; display: flex; flex-direction: column; ">
+            <a data-toggle="modal" data-target="#myModal-{{ post.post_id }}" style="color: inherit; text-decoration: none;">
+                <h2 style="font-weight: bold; margin-bottom: 20px;">{{ post.post_title }}</h2>
+                <p>{{ post.post_text }}</p>
+            </a>
+            <div style="position: absolute; bottom: 10px; right: 10px;">
+                <form action="{{ url_for('like_post', post_id=post.post_id) }}" method="post">
+                    <button type="submit">👍</button>
+                </form>
+                Likes: {{ post.posts_likes }}
+                <form action="{{ url_for('dislike_post', post_id=post.post_id) }}" method="post">
+                    <button type="submit">👎</button>
+                </form>
+                Dislikes: {{ post.posts_dislikes }}
+            </div>
+            <div style="position: absolute; bottom: -10px; left: 10px;">
+                <p>Posted on: {{ post.post_creation_time.strftime('%Y-%m-%d %H:%M:%S') }} by <a href="{{ url_for('user_page', user_name=post.user_name) }}">{{post.user_name}}</a></p>
+            </div>
         </div>
-        <div style="position: absolute; bottom: -10px; left: 10px;">
-            <p>Posted on: {{ post.post_creation_time.strftime('%Y-%m-%d %H:%M:%S') }} by <a href="{{ url_for('user_page', user_name=post.user_name) }}">{{post.user_name}}</a></p>
-        </div>
-    </div>
 
+        
+        <!-- EDIT BUTTON-->
+
+        {%if username == post.user_name%}
+        
+            <button type="button"  class="btn btn-secondary" data-toggle="modal" data-target="#edit_post_Modal-{{ post.post_id }}">
+                Edit Post
+            </button>
+
+            <div class="modal fade" id="edit_post_Modal-{{ post.post_id }}">
+                <div class="modal-dialog modal-dialog-scrollable modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+
+                            <form id="updateForm-{{ post.post_id }}" method="post" action="{{ url_for('edit_post') }}">
+                                <div class="form-group">
+                                    <label for="post_title" class="col-form-label">Post Title:</label>
+                                    <textarea class="form-control" id="post_title" name="post_title" required>{{ post.post_title }}</textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="post_text" class="col-form-label">Post Text:</label>
+                                    <textarea class="form-control" id="post_text" name="post_text" required>{{ post.post_text }}</textarea>
+                                </div>
+                                <input type="hidden" name="post_id" value="{{ post.post_id }}">
+                                <input type="hidden" name="thread_id" value="{{ thread_id }}">
+                                <button type="button" class="btn btn-primary" onclick="document.getElementById('updateForm-{{ post.post_id }}').submit()">Edit</button>
+                            </form>
+
+                            <h2 class="modal-title">Edit Post</h2>
+                            <button type="button" class="close" data-dismiss="modal">x</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+        {%endif%}
+    </div> <!-- div ends here-->
+    <!-- EDIT BUTTON-->
         <div class="modal fade" id="myModal-{{ post.post_id }}">
             <div class="modal-dialog modal-dialog-scrollable modal-lg">
                 <div class="modal-content">
