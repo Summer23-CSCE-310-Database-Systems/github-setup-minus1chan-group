@@ -1,12 +1,12 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
-from sqlalchemy import create_engine, Table, MetaData, select, desc
-
-from flask import session
-
-
+from flask import Flask, render_template, request, redirect, url_for, flash,session,jsonify
+from sqlalchemy import create_engine, Table, MetaData, select, desc, insert
+from flask_sqlalchemy import SQLAlchemy
+import datetime
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://postgres:minus1chan@project301.c3lu1ffcsmca.us-east-2.rds.amazonaws.com'
+db = SQLAlchemy(app)
 engine = create_engine('postgresql+psycopg2://postgres:minus1chan@project301.c3lu1ffcsmca.us-east-2.rds.amazonaws.com:5432/postgres')
 metadata = MetaData()
 
@@ -15,6 +15,26 @@ Topic = Table('topic', metadata, autoload_with=engine)
 Thread = Table('thread', metadata, autoload_with=engine)
 Post = Table('post', metadata, autoload_with=engine)
 Comment = Table('comment', metadata, autoload_with=engine)
+
+@app.route('/register', methods=['POST'])
+def register():
+    user_name = request.form['user_name']
+    password = request.form['password']
+    profile_text = request.form['profile_text']
+
+    with engine.connect() as connection:
+        existing_user = connection.execute(select(User).where(User.c.user_name == user_name)).fetchone()
+        
+        if existing_user:
+            flash('User already exists, please choose another username.', 'warning')
+            return redirect(url_for('login'))
+        
+        new_user = User.insert().values(user_name=user_name, password=password, profile_text=profile_text)
+        connection.execute(new_user)
+        connection.commit()
+
+        flash('Registration successful. Please log in.', 'success')
+        return redirect(url_for('login'))
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -34,12 +54,12 @@ def login():
     return render_template('login.html')
 
 
-
 @app.route('/topics', methods=['GET'])
 def topics():
     username = session.get('user_name', 'Guest')
     with engine.connect() as connection:
         result = connection.execute(select(Topic)).fetchall()
+        
     categories = {}
     for row in result:
         category = row[3]
@@ -52,31 +72,124 @@ def topics():
     return render_template('topics.html', categories=categories,username=username)
 
 
-# @app.route('/threads/<int:topic_id>')
-# def threads(topic_id):
-#     with engine.connect() as connection:
-#         results = connection.execute(select(Thread).where(Thread.c.topic_id == topic_id).order_by(desc(Thread.c.vote_ratio))).fetchall()
-#     return render_template('threads.html', threads=results)
+@app.route('/topics/<string:topic_name>', methods=['GET'])
+def topic_threads(topic_name):
+    username = session.get('user_name', 'Guest')
+    with engine.connect() as connection:
+        topic_id = connection.execute(select(Topic.c.topic_id).where(Topic.c.topic_title == topic_name)).scalar()
+        result = connection.execute(select(Thread).where(Thread.c.topic_id == topic_id)).fetchall()
+    threads = [row._asdict() for row in result]
+    return render_template('topic.html', threads=threads, topic=topic_name,username=username,topic_id=topic_id)
 
-@app.route('/posts/<int:post_id>', methods=['GET', 'POST'])
-def posts(post_id):
-    if request.method == 'POST':
-        # Process the submitted comment here
-        # You can access the comment data from the form using request.form
-        comment_text = request.form['comment_text']
-        # You should also store the user information (if logged in) to associate the comment with the user
-        user_name = session.get('user_name', None)  # Get the username from the session, if available
-        with engine.connect() as connection:
-            # Insert the comment into the database
-            connection.execute(Comment.insert().values(post_id=post_id, user_name=user_name, comment_text=comment_text))
-        flash('Comment added successfully!', 'success')
-        return redirect(url_for('posts', post_id=post_id))  # Redirect back to the same post page
 
-    else:  # When the request method is 'GET'
+@app.route('/threads/<int:thread_id>', methods=['GET'])
+def thread_posts(thread_id):
+    username = session.get('user_name', 'Guest')
+    with engine.connect() as connection:
+        thread = connection.execute(select(Thread).where(Thread.c.thread_id == thread_id)).fetchone()
+        thread_title = thread.thread_title if thread else ""
+        result = connection.execute(select(Post).where(Post.c.thread_id == thread_id).order_by(desc(Post.c.posts_likes))).fetchall() # Order by likes
+        posts = [row._asdict() for row in result]
+        for post in posts:
+            comments_result = connection.execute(select(Comment).where(Comment.c.post_id == post['post_id'])).fetchall()
+            post['comments'] = [row._asdict() for row in comments_result]
+    return render_template('post.html', posts=posts, thread_id=thread_id, username=username, thread_title=thread_title)
+
+
+
+@app.route('/users/<string:user_name>', methods=['GET'])
+def user_page(user_name):
+    with engine.connect() as connection:
+        user = connection.execute(select(User).where(User.c.user_name == user_name)).fetchone()._asdict()
+        user_threads = connection.execute(select(Thread).where(Thread.c.user_name == user_name)).fetchall()
+        user_threads = [row._asdict() for row in user_threads]
+        user_posts = connection.execute(select(Post).where(Post.c.user_name == user_name)).fetchall()
+        user_posts = [row._asdict() for row in user_posts]
+        user_comments = connection.execute(select(Comment).where(Comment.c.user_name == user_name)).fetchall()
+        user_comments = [row._asdict() for row in user_comments]
+
+    return render_template('user.html', user=user, user_threads=user_threads, user_posts=user_posts, user_comments=user_comments)
+
+@app.route('/add_thread', methods=['POST'])
+def add_thread():
+    title = request.form['title']
+    user_name = session.get('user_name', 'Guest')
+    topic_id = request.form.get('topic_id')
+    creation_time = datetime.datetime.now()
+    stmt = insert(Thread).values(thread_title=title, user_name=user_name, topic_id=topic_id, thread_creation_time=creation_time)
+    result = db.session.execute(stmt)
+    db.session.commit()
+    new_thread_id = result.inserted_primary_key[0]
+
+    return redirect(url_for('thread_posts', thread_id=new_thread_id))
+
+@app.route('/add_post', methods=['POST'])
+def add_post():
+    text = request.form['text']
+    title= request.form['title']
+    user_name = session.get('user_name', 'Guest')
+    thread_id = request.form.get('thread_id')
+    post_creation_time = datetime.datetime.now()
+    print(thread_id)
+    stmt = insert(Post).values(post_title=title,post_text=text, user_name=user_name,thread_id=thread_id, post_creation_time=post_creation_time)
+    db.session.execute(stmt)
+    db.session.commit()
+
+    return redirect(url_for('thread_posts', thread_id=thread_id))
+
+@app.route('/add_comment', methods=['POST'])
+def add_comment():
+    text = request.form['text']
+    user_name = session.get('user_name', 'Guest')
+    post_id = request.form.get('post_id')
+    thread_id = request.form.get('thread_id')
+    print(thread_id)
+    comment_creation_time = datetime.datetime.now()
+
+    stmt = insert(Comment).values(comment_text=text, user_name=user_name, post_id=post_id, comment_creation_time=comment_creation_time)
+    db.session.execute(stmt)
+    db.session.commit()
+
+
+    return redirect(url_for('thread_posts', thread_id=thread_id))
+
+@app.route('/like_post/<int:post_id>', methods=['POST'])
+def like_post(post_id):
+    username = session.get('user_name', 'Guest')
+    liked_posts = session.get(f'liked_posts_{username}', [])
+
+    if post_id not in liked_posts:
         with engine.connect() as connection:
             post = connection.execute(select(Post).where(Post.c.post_id == post_id)).fetchone()
-            comments = connection.execute(select(Comment).where(Comment.c.post_id == post_id)).fetchall()
-        return render_template('post.html', post=post, comments=comments)
+            if post:
+                likes = post[5] + 1
+                stmt = Post.update().where(Post.c.post_id == post_id).values(posts_likes=likes)
+                db.session.execute(stmt)
+                db.session.commit()
+        liked_posts.append(post_id)
+        session[f'liked_posts_{username}'] = liked_posts
+    return redirect(request.referrer)
+
+
+
+@app.route('/dislike_post/<int:post_id>', methods=['POST'])
+def dislike_post(post_id):
+    username = session.get('user_name', 'Guest')
+    disliked_posts = session.get(f'disliked_posts_{username}', [])
+
+    if post_id not in disliked_posts:
+        with engine.connect() as connection:
+            post = connection.execute(select(Post).where(Post.c.post_id == post_id)).fetchone()
+            if post:
+                dislikes = post.posts_dislikes + 1
+                stmt = Post.update().where(Post.c.post_id == post_id).values(posts_dislikes=dislikes)
+                connection.execute(stmt)
+                connection.commit()
+        disliked_posts.append(post_id)
+        session[f'disliked_posts_{username}'] = disliked_posts
+    return redirect(request.referrer)
+
+
 
 if __name__ == '__main__':
     app.run(debug=True,port=8000)
