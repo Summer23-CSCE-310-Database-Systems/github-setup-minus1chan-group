@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}{{topic}} Threads{% endblock %}
+{% block content %}
+    <style>
+        .thread-box {
+            width: 80%;
+            margin: 0 auto;
+            border: 1px solid #000;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+    </style>
+    <h1>{{topic}} Threads</h1>
+
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#threadModal">
+        Add Thread
+    </button>
+    
+    {% for thread in threads %}
+        <a href="{{ url_for('thread_posts', thread_id=thread.thread_id) }}" style="color: inherit; text-decoration: none;">
+            <div class="thread-box">
+                <h2>{{thread['thread_title']}}</h2>
+                <p>Created by <a href="{{ url_for('user_page', user_name=thread['user_name']) }}">{{thread['user_name']}}</a> at {{thread['thread_creation_time']}}</p>
+            </div>
+        </a>
+    {% endfor %}
+
+    <div class="modal fade" id="threadModal" tabindex="-1" role="dialog" aria-labelledby="threadModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h5 class="modal-title" id="threadModalLabel">New Thread</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            </div>
+            <div class="modal-body">
+                <form id="threadForm" method="post" action="{{ url_for('add_thread') }}">
+                    <div class="form-group">
+                    <label for="thread-title" class="col-form-label">Title:</label>
+                    <input type="text" class="form-control" id="thread-title" name="title" required>
+                    </div>
+                    <div class="form-group">
+                    <label for="thread-text" class="col-form-label">Text:</label>
+                    <textarea class="form-control" id="thread-text" name="text" required></textarea>
+                    </div>
+                    <input type="hidden" name="topic_id" value="{{ topic_id }}">
+                </form>                
+            </div>
+            <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" onclick="document.getElementById('threadForm').submit()">Add Thread</button>
+            </div>
+        </div>
+        </div>
+    </div>
+{% endblock %}
