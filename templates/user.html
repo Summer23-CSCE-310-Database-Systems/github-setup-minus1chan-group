@@ -1,46 +1,92 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1 class='displayname'>
-      {{ user.user_name }}
-    </h1>
+<style>
+    /* Custom styles for this template */
+    .displayname {
+        font-size: 36px;
+        color: #333;
+        margin-bottom: 20px;
+    }
 
-    <div>
-      <img class='photo' src="{{ user.user_image }}"/>
-      <p class='bio'>{{ user.profile_text }}</p>
-    </div>
+    .photo {
+        max-width: 200px;
+        border-radius: 50%;
+        margin-bottom: 20px;
+        box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.2);
+    }
 
-    <div>
-      <h3 class='linkstab'>
+    .bio {
+        font-size: 16px;
+        color: #666;
+        line-height: 1.6;
+    }
+
+    .linkstab {
+        font-size: 24px;
+        color: #333;
+        margin-top: 30px;
+    }
+
+    .links {
+        list-style: none;
+        padding: 0;
+    }
+
+    .links li {
+        margin-bottom: 5px;
+        color: #00aeea;
+        transition: color 0.2s;
+    }
+
+    .links li a {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .links li a:hover {
+        color: #0087be;
+    }
+</style>
+<h1 class="displayname">
+    {{ user.user_name }}
+</h1>
+
+<div>
+    <img class="photo" src="{{ user.user_image }}" alt="User Photo">
+    <p class="bio">{{ user.profile_text }}</p>
+</div>
+
+<div>
+    <h3 class="linkstab">
         This user's threads
-      </h3>
-      <ul class='links'>
+    </h3>
+    <ul class="links">
         {% for thread in user_threads %}
             <li><a href="{{ url_for('thread_posts', thread_id=thread.thread_id) }}">{{ thread.thread_title }}</a></li>
         {% endfor %}
-      </ul>
-    </div>
+    </ul>
+</div>
 
-    <div>
-      <h3 class='linkstab'>
+<div>
+    <h3 class="linkstab">
         This user's posts
-      </h3>
-      <ul class='links'>
+    </h3>
+    <ul class="links">
         {% for post in user_posts %}
             <li><a href="{{ url_for('thread_posts', thread_id=post.thread_id) }}">{{ post.post_title }}</a></li>
         {% endfor %}
-      </ul>
-    </div>
+    </ul>
+</div>
 
-    <div>
-      <h3 class='linkstab'>
+<div>
+    <h3 class="linkstab">
         This user's comments
-      </h3>
-      <ul class='links'>
+    </h3>
+    <ul class="links">
         {% for comment in user_comments %}
             <li>{{ comment.comment_text }}</li>
         {% endfor %}
-      </ul>
-    </div>
+    </ul>
+</div>
 {% endblock %}
-
