@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash,session,jsonify
-from sqlalchemy import create_engine, Table, MetaData, select, desc, insert,update
+from sqlalchemy import create_engine, Table, MetaData, select, desc, insert,update, delete
 from flask_sqlalchemy import SQLAlchemy
 import datetime
 
@@ -207,6 +207,22 @@ def edit_post():
     else:
         return redirect(url_for('topics'))
 
+@app.route('/delete_post', methods=['GET','POST'])
+def delete_post():
+    #username = session.get('user_name', 'Guest')
 
+    if request.method == 'POST':
+        post_id = request.form.get('post_id')
+        thread_id = request.form.get('thread_id')
+        with engine.connect() as connection:
+            connection.execute(select(Comment).where(Comment.c.post_id == post_id)).fetchall()
+            stmt = delete(Comment).where(Comment.c.post_id == post_id)
+            db.session.execute(stmt)
+            stmt2 = delete(Post).where(Post.c.post_id == post_id)
+            db.session.execute(stmt2)
+            db.session.commit()
+            return redirect(url_for('thread_posts', thread_id=thread_id))
+    else:
+        return redirect(url_for('topics'))
 if __name__ == '__main__':
     app.run(debug=True,port=8000)
