@@ -138,7 +138,19 @@
                                     <p>{{ comment.comment_text }}</p>
                                 </div>
                                 <div>
-                                    <p>Likes: {{ comment.comment_likes }} Dislikes: {{ comment.comment_dislikes }}</p>
+                                    
+                                    <form action="{{ url_for('like_comment', comment_id=comment.comment_id) }}" method="post" style="display: inline;">
+                                            <input type="hidden" name="thread_id" value="{{ thread_id }}">
+                                            <input type="hidden" name="open_post_id" value="{{ post.post_id }}">
+                                        <button type="submit">👍</button>
+                                    </form>
+                                    Likes: {{ comment.comment_likes }}
+                                    <form action="{{ url_for('dislike_comment', comment_id=comment.comment_id) }}" method="post" style="display: inline;">
+                                            <input type="hidden" name="thread_id" value="{{ thread_id }}">
+                                            <input type="hidden" name="open_post_id" value="{{ post.post_id }}">
+                                        <button type="submit">👎</button>
+                                    </form>
+                                    Dislikes: {{ comment.comment_dislikes }}
                                 </div>
                             </div>
                         {% endfor %}
@@ -147,6 +159,16 @@
             </div>
         </div>
     {% endfor %}
-    
+    <script>
+        window.onload = function() {
+            let openPostId = "{{ request.args.get('open_post_id', '') }}";
+            if (openPostId) {
+                let modalToOpen = document.querySelector("#myModal-" + openPostId);
+                console.log(openPostId)
+                if (modalToOpen) {
+                    $(modalToOpen).modal('show');
+                }
+            }
+        }
+    </script>
 {% endblock %}
-
