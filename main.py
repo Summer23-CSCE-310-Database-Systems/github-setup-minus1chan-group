@@ -88,10 +88,10 @@ def thread_posts(thread_id):
     with engine.connect() as connection:
         thread = connection.execute(select(Thread).where(Thread.c.thread_id == thread_id)).fetchone()
         thread_title = thread.thread_title if thread else ""
-        result = connection.execute(select(Post).where(Post.c.thread_id == thread_id).order_by(desc(Post.c.posts_likes))).fetchall() # Order by likes
+        result = connection.execute(select(Post).where(Post.c.thread_id == thread_id).order_by(desc(Post.c.posts_likes))).fetchall()
         posts = [row._asdict() for row in result]
         for post in posts:
-            comments_result = connection.execute(select(Comment).where(Comment.c.post_id == post['post_id'])).fetchall()
+            comments_result = connection.execute(select(Comment).where(Comment.c.post_id == post['post_id']).order_by(Comment.c.comment_likes.desc())).fetchall()
             post['comments'] = [row._asdict() for row in comments_result]
     return render_template('post.html', posts=posts, thread_id=thread_id, username=username, thread_title=thread_title)
 
@@ -157,37 +157,124 @@ def add_comment():
 def like_post(post_id):
     username = session.get('user_name', 'Guest')
     liked_posts = session.get(f'liked_posts_{username}', [])
+    disliked_posts = session.get(f'disliked_posts_{username}', [])
 
-    if post_id not in liked_posts:
-        with engine.connect() as connection:
-            post = connection.execute(select(Post).where(Post.c.post_id == post_id)).fetchone()
-            if post:
+    with engine.connect() as connection:
+        post = connection.execute(select(Post).where(Post.c.post_id == post_id)).fetchone()
+        if post:
+            if post_id in disliked_posts:
                 likes = post[5] + 1
-                stmt = Post.update().where(Post.c.post_id == post_id).values(posts_likes=likes)
-                db.session.execute(stmt)
-                db.session.commit()
-        liked_posts.append(post_id)
-        session[f'liked_posts_{username}'] = liked_posts
-    return redirect(request.referrer)
+                dislikes = post.posts_dislikes - 1
+                disliked_posts.remove(post_id)
+                liked_posts.append(post_id)
+            elif post_id not in liked_posts:
+                likes = post[5] + 1
+                dislikes = post.posts_dislikes
+                liked_posts.append(post_id)
+            elif post_id in liked_posts:
+                return redirect(request.referrer)
 
+            stmt = Post.update().where(Post.c.post_id == post_id).values(posts_likes=likes, posts_dislikes=dislikes)
+            connection.execute(stmt)
+            connection.commit()
+
+    session[f'liked_posts_{username}'] = liked_posts
+    session[f'disliked_posts_{username}'] = disliked_posts
+    return redirect(request.referrer)
 
 
 @app.route('/dislike_post/<int:post_id>', methods=['POST'])
 def dislike_post(post_id):
     username = session.get('user_name', 'Guest')
     disliked_posts = session.get(f'disliked_posts_{username}', [])
+    liked_posts = session.get(f'liked_posts_{username}', [])
 
-    if post_id not in disliked_posts:
-        with engine.connect() as connection:
-            post = connection.execute(select(Post).where(Post.c.post_id == post_id)).fetchone()
-            if post:
+    with engine.connect() as connection:
+        post = connection.execute(select(Post).where(Post.c.post_id == post_id)).fetchone()
+        if post:
+            if post_id in liked_posts:
                 dislikes = post.posts_dislikes + 1
-                stmt = Post.update().where(Post.c.post_id == post_id).values(posts_dislikes=dislikes)
-                connection.execute(stmt)
-                connection.commit()
-        disliked_posts.append(post_id)
-        session[f'disliked_posts_{username}'] = disliked_posts
+                likes = post[5] - 1
+                liked_posts.remove(post_id)
+                disliked_posts.append(post_id)
+            elif post_id not in disliked_posts:
+                dislikes = post.posts_dislikes + 1
+                likes = post[5]
+                disliked_posts.append(post_id)
+            elif post_id in disliked_posts:
+                return redirect(request.referrer)
+
+            stmt = Post.update().where(Post.c.post_id == post_id).values(posts_likes=likes, posts_dislikes=dislikes)
+            connection.execute(stmt)
+            connection.commit()
+
+    session[f'liked_posts_{username}'] = liked_posts
+    session[f'disliked_posts_{username}'] = disliked_posts
     return redirect(request.referrer)
+
+
+@app.route('/like_comment/<int:comment_id>', methods=['POST'])
+def like_comment(comment_id):
+    username = session.get('user_name', 'Guest')
+    liked_comments = session.get(f'liked_comments_{username}', [])
+    disliked_comments = session.get(f'disliked_comments_{username}', [])
+    open_post_id = request.form.get('open_post_id', None)
+    thread_id = request.form.get('thread_id')
+
+    with engine.connect() as connection:
+        comment = connection.execute(select(Comment).where(Comment.c.comment_id == comment_id)).fetchone()
+        if comment:
+            if comment_id in disliked_comments:
+                likes = comment.comment_likes + 1
+                dislikes = comment.comment_dislikes - 1
+                disliked_comments.remove(comment_id)
+                liked_comments.append(comment_id)
+            elif comment_id not in liked_comments:
+                likes = comment.comment_likes + 1
+                dislikes = comment.comment_dislikes
+                liked_comments.append(comment_id)
+            elif comment_id in liked_comments:
+                return redirect(url_for('thread_posts', thread_id=thread_id, open_post_id=open_post_id))
+
+            stmt = Comment.update().where(Comment.c.comment_id == comment_id).values(comment_likes=likes, comment_dislikes=dislikes)
+            connection.execute(stmt)
+            connection.commit()
+
+    session[f'liked_comments_{username}'] = liked_comments
+    session[f'disliked_comments_{username}'] = disliked_comments
+    return redirect(url_for('thread_posts', thread_id=thread_id, open_post_id=open_post_id))
+
+@app.route('/dislike_comment/<int:comment_id>', methods=['POST'])
+def dislike_comment(comment_id):
+    username = session.get('user_name', 'Guest')
+    disliked_comments = session.get(f'disliked_comments_{username}', [])
+    liked_comments = session.get(f'liked_comments_{username}', [])
+    open_post_id = request.form.get('open_post_id', None)
+    thread_id = request.form.get('thread_id')
+
+    with engine.connect() as connection:
+        comment = connection.execute(select(Comment).where(Comment.c.comment_id == comment_id)).fetchone()
+        
+        if comment:
+            if comment_id in liked_comments:
+                dislikes = comment.comment_dislikes + 1
+                likes = comment.comment_likes - 1
+                liked_comments.remove(comment_id)
+                disliked_comments.append(comment_id)
+            elif comment_id not in disliked_comments:
+                dislikes = comment.comment_dislikes + 1
+                likes = comment.comment_likes
+                disliked_comments.append(comment_id)
+            elif comment_id in disliked_comments:
+                return redirect(url_for('thread_posts', thread_id=thread_id, open_post_id=open_post_id))
+
+            stmt = Comment.update().where(Comment.c.comment_id == comment_id).values(comment_likes=likes, comment_dislikes=dislikes)
+            connection.execute(stmt)
+            connection.commit()
+
+    session[f'liked_comments_{username}'] = liked_comments
+    session[f'disliked_comments_{username}'] = disliked_comments
+    return redirect(url_for('thread_posts', thread_id=thread_id, open_post_id=open_post_id))
 
 
 

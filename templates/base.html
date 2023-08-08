@@ -13,6 +13,228 @@
         .card {
             margin-bottom: 20px;
         }
+        body {
+            background-color: #f7f7f7;
+        }
+
+        .container {
+            margin-top: 50px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-title {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        ul li {
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        ul li a {
+            text-decoration: none;
+            color: #333;
+            transition: color 0.2s;
+        }
+
+        ul li a:hover {
+            color: #ff5500;
+        }
+
+        h1 {
+            font-size: 36px;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .container {
+        margin-top: 50px;
+        }
+
+        .btn-primary {
+            background-color: #ff5500;
+            border-color: #ff5500;
+        }
+
+        .btn-primary:hover {
+            background-color: #ff5500;
+            border-color: #ff5500;
+        }
+
+        .modal-content {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-title {
+            font-size: 24px;
+            color: #333;
+        }
+
+        .close {
+            color: #333;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-control {
+            border-color: #ddd;
+            box-shadow: none;
+        }
+
+        .form-control:focus {
+            border-color: #00aeea;
+            box-shadow: 0px 0px 0px 2px rgba(0, 174, 234, 0.2);
+        }
+
+        .btn-secondary {
+            background-color: #333;
+            border-color: #333;
+            color: #fff;
+        }
+
+        .btn-secondary:hover {
+            background-color: #222;
+            border-color: #222;
+        }
+
+        .thread-box {
+            width: 80%;
+            margin: 0 auto;
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .thread-box:hover {
+            transform: translateY(-3px);
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .thread-box h2 {
+            font-size: 20px;
+            color: #333;
+        }
+
+        .thread-box p {
+            color: #666;
+        }
+
+        .thread-box a {
+            color: #00aeea;
+        }
+
+        .thread-box a:hover {
+            color: #0087be;
+        }
+
+        h1 {
+            font-size: 36px;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .btn-primary {
+        background-color: #ff5500;
+        border-color: #ff5500;
+        }
+
+        .btn-primary:hover {
+            background-color: #cc4400;
+            border-color: #cc4400;
+        }
+
+        .modal-header {
+            background-color: #6c757d;
+            color: #fff;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .modal-footer {
+            border-top: none;
+        }
+
+        .modal-content {
+            border-radius: 8px;
+            box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-content:hover {
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .thread-box {
+            width: 80%;
+            margin: 20px auto;
+            border: 1px solid #000;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .thread-box h2 {
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .thread-box p {
+            margin-bottom: 0;
+            color: #555;
+        }
+
+        .thread-box a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .thread-box a:hover {
+            color: #ff5500;
+        }
+
+        .likes-dislikes {
+            display: flex;
+            align-items: center;
+        }
+
+        .likes-dislikes form {
+            margin: 0;
+        }
+
+        .likes-dislikes button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            margin-right: 5px;
+            color: #ff5500;
+        }
     </style>
     {% block head %}{% endblock %}
 </head>
